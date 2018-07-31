@@ -17,6 +17,11 @@
         .then(addImage)
         .catch(e => requestError(e,'image'));
 
+        fetch(`http://api.nytimes.com/svc/search/v2/articlesearch.json?q=${searchedForText}&api-key=554a744b61a14033b1ca2af755235da8`
+        ).then(response => response.json())
+        .then(addArticles)
+        .catch(e => requestError(e, 'article'));
+
         function addImage(data) {
             let htmlContent = '';
             const firstImage = data.results[0];
@@ -33,9 +38,25 @@
             responseContainer.insertAdjacentHTML('afterbegin', htmlContent);
         }
 
+        function addArticles(data) {
+            let htmlContent = '';
+            let allArticles = data.response.docs;
+
+            if(allArticles.length > 1) {
+                htmlContent = '<ul>'+allArticles.map(article => `<li class="article"><h2><a href="${article.web_url}">${article.headline.main}</a></h2><p>${article.snippet}</p></li>`).join('')+'</ul>';
+            } else {
+                htmlContent = `<div class="error-no-article">No articles Available</div>`
+            }
+
+            responseContainer.insertAdjacentHTML('beforeend', htmlContent);
+
+        }
+
         function requestError(e, part) {
             console.log(e);
             responseContainer.insertAdjacentHTML('beforeend', `<p class="network-warning">Oh no! There was an error making a request for the ${part}.</p>`);
         }
+
+
     });
 })();
